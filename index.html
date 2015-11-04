@@ -1,0 +1,78 @@
+<!doctype html>
+<html ng-app="myApp">
+  <head>
+    <title>My Angular App</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+    <script type="text/javascript">
+      var myApp = angular.module('myApp', []);
+
+      myApp.controller('helloCtrl', function($scope) {
+        $scope.hi = 'world';
+      });
+      myApp.controller('contactCtrl', function($scope, $timeout) {
+        $scope.hi = 'contactCtrl';
+        $scope.counter = 0;
+        var increase = function() {
+          $scope.counter++;
+          $timeout(increase, 1000);
+        }
+        increase();
+      });
+      myApp.directive('anView', ['anRouter', '$compile', '$controller', '$timeout',
+        function(anRouter, $compile, $controller, $timeout) {
+        console.log('called');
+        anRouter.doStuff();
+        console.log('compile ', $compile);
+        return {
+          restrict: 'E',
+          transclude: true,
+          scope: {},
+          templateUrl: 'templates/contact.html',
+          link: function(scope, element, attrs) {
+            var subscope = scope.$new(); 
+            console.log('subscope', subscope);
+            var el = $compile('<div>sub el {{ hi }} {{ counter }}</div>')(subscope);
+            console.log('el', el);
+            console.log($controller);
+            $controller('contactCtrl', {$scope: subscope});
+            element.append(el);
+            console.log('element', element);
+            
+            $timeout(function() {
+
+              var subscope = scope.$new(); 
+              console.log('subscope', subscope);
+              var el = $compile('<div>sub el {{ hi }} {{ counter }}</div>')(subscope);
+              console.log('el', el);
+              console.log($controller);
+              $controller('contactCtrl', {$scope: subscope});
+              element.append(el);
+              console.log('element', element);
+            }, 5000);
+          }
+        }
+      }]);
+
+      myApp.service('anRouter', function() {
+        console.log('service called');
+        this.doStuff = function() {
+          console.log('wll do stuff');
+        }
+      });
+    </script>
+  </head>
+  <body>
+    Write some text in textbox:
+    <input type="text" ng-model="sometext" />
+ 
+    <h1>Hello {{ sometext }}</h1>
+    <div ng-controller="helloCtrl">
+      {{ hi }}
+    </div>
+    <an-view></an-view>
+
+    <script id="templates/contact.html" type="text/ng-template">
+      i am the contact template {{ hi }}: my counter is {{ counter }}
+    </script>
+  </body>
+</html>

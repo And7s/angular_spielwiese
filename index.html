@@ -18,8 +18,21 @@
         }
         increase();
       });
-      myApp.directive('anView', ['anRouter', '$compile', '$controller', '$timeout',
-        function(anRouter, $compile, $controller, $timeout) {
+      myApp.directive('a', ['anRouter', function(anRouter) {
+        return {
+          link: function(scope, element, attrs) {
+            element.bind('click', function(e) {
+              var href = event.target.getAttribute('href');
+              anRouter.goTo(href);
+              console.log(href);
+              console.log('click');
+              e.preventDefault();
+            })
+          }
+        }
+      }]);
+      myApp.directive('anView', ['anRouter', '$compile', '$controller', '$timeout', '$templateCache', '$rootScope',
+        function(anRouter, $compile, $controller, $timeout, $templateCache, $rootScope) {
         console.log('called');
         anRouter.doStuff();
         console.log('compile ', $compile);
@@ -29,36 +42,55 @@
           scope: {},
           templateUrl: 'templates/contact.html',
           link: function(scope, element, attrs) {
+
+            $rootScope.$on('anStateChange', function(to) {
+              console.log('state changed to ', to);
+              var subscope = scope.$new(); 
+              console.log('subscope', subscope);
+              console.log('$templateCache', $templateCache);
+              console.log($templateCache.get('templates/contact.html'))
+              var el = $compile($templateCache.get('templates/contact.html'))(subscope);
+              console.log('el', el);
+              console.log($controller);
+              $controller('contactCtrl', {$scope: subscope});
+              $timeout(function() {
+                element.append(el);
+              });
+              console.log('element', element);
+            
+
+             });
+
+
+
             var subscope = scope.$new(); 
             console.log('subscope', subscope);
-            var el = $compile('<div>sub el {{ hi }} {{ counter }}</div>')(subscope);
+            console.log('$templateCache', $templateCache);
+            console.log($templateCache.get('templates/contact.html'))
+            var el = $compile($templateCache.get('templates/contact.html'))(subscope);
             console.log('el', el);
             console.log($controller);
             $controller('contactCtrl', {$scope: subscope});
             element.append(el);
             console.log('element', element);
             
-            $timeout(function() {
-
-              var subscope = scope.$new(); 
-              console.log('subscope', subscope);
-              var el = $compile('<div>sub el {{ hi }} {{ counter }}</div>')(subscope);
-              console.log('el', el);
-              console.log($controller);
-              $controller('contactCtrl', {$scope: subscope});
-              element.append(el);
-              console.log('element', element);
-            }, 5000);
+            
           }
         }
       }]);
 
-      myApp.service('anRouter', function() {
+      myApp.service('anRouter', ['$rootScope', function($rootScope) {
         console.log('service called');
         this.doStuff = function() {
           console.log('wll do stuff');
+        };
+        this.goTo = function(href) {
+          console.log('href is ', href);
+          $rootScope.$emit('anStateChange', href);
+          //this.$emit('hello');
+          console.log(this);
         }
-      });
+      }]);
     </script>
   </head>
   <body>
@@ -72,7 +104,16 @@
     <an-view></an-view>
 
     <script id="templates/contact.html" type="text/ng-template">
-      i am the contact template {{ hi }}: my counter is {{ counter }}
+      <div>
+        i am the contact template {{ hi }}: my counter is {{ counter }}
+        <a href="#list">go to list</a>
+      </div>
+    </script>
+
+    <script id="templates/list.html" type="text/ng-template">
+      <div>
+        This is the List View
+      </div>
     </script>
   </body>
 </html>

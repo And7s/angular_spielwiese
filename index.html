@@ -2,14 +2,17 @@
 <html ng-app="myApp">
   <head>
     <title>My Angular App</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
     <script type="text/javascript">
       var myApp = angular.module('myApp', []);
 
       myApp.controller('helloCtrl', function($scope) {
+        console.log('hello Ctrl');
         $scope.hi = 'world';
       });
       myApp.controller('contactCtrl', function($scope, $timeout) {
+        console.log('contact Ctrl');
         $scope.hi = 'contactCtrl';
         $scope.counter = 0;
         var increase = function() {
@@ -22,7 +25,7 @@
         return {
           link: function(scope, element, attrs) {
             element.bind('click', function(e) {
-              var href = event.target.getAttribute('href');
+              var href = e.target.getAttribute('href');
               anRouter.goTo(href);
               console.log(href);
               console.log('click');
@@ -31,50 +34,59 @@
           }
         }
       }]);
+
+
+
       myApp.directive('anView', ['anRouter', '$compile', '$controller', '$timeout', '$templateCache', '$rootScope',
         function(anRouter, $compile, $controller, $timeout, $templateCache, $rootScope) {
         console.log('called');
         anRouter.doStuff();
-        console.log('compile ', $compile);
+
         return {
           restrict: 'E',
           transclude: true,
           scope: {},
-          templateUrl: 'templates/contact.html',
           link: function(scope, element, attrs) {
+            var views = {}, scopes = {}, cur_el;
 
-            $rootScope.$on('anStateChange', function(to) {
+            $rootScope.$on('anStateChange', function(e, to) {
               console.log('state changed to ', to);
-              var subscope = scope.$new(); 
-              console.log('subscope', subscope);
-              console.log('$templateCache', $templateCache);
-              console.log($templateCache.get('templates/contact.html'))
-              var el = $compile($templateCache.get('templates/contact.html'))(subscope);
-              console.log('el', el);
-              console.log($controller);
-              $controller('contactCtrl', {$scope: subscope});
+
+              // clear existing controllers
+              if (scopes[to]) {
+                var subscope = scopes[to];
+              } else {
+                var subscope = scope.$new();
+                $controller('contactCtrl', {$scope: subscope});
+                scopes[to] = subscope;
+              }
+
+              var el = $compile($templateCache.get('templates/'+ to +'.html'))(subscope);
+              views[to] = el;
+
               $timeout(function() {
                 element.append(el);
               });
-              console.log('element', element);
-            
+
+              // animate in
+              el[0].classList.add('anView', 'ng-enter');
+              setTimeout(function() {
+                el[0].classList.remove('ng-enter');
+                cur_el = el;
+              }, 1000);
+
+
+
+              // animate out
+              cur_el[0].classList.add('ng-leave');
+
+
+
+
+              console.log('element', el);
 
              });
 
-
-
-            var subscope = scope.$new(); 
-            console.log('subscope', subscope);
-            console.log('$templateCache', $templateCache);
-            console.log($templateCache.get('templates/contact.html'))
-            var el = $compile($templateCache.get('templates/contact.html'))(subscope);
-            console.log('el', el);
-            console.log($controller);
-            $controller('contactCtrl', {$scope: subscope});
-            element.append(el);
-            console.log('element', element);
-            
-            
           }
         }
       }]);
@@ -86,6 +98,7 @@
         };
         this.goTo = function(href) {
           console.log('href is ', href);
+          history.pushState({}, "", '#'+href);
           $rootScope.$emit('anStateChange', href);
           //this.$emit('hello');
           console.log(this);
@@ -94,26 +107,55 @@
     </script>
   </head>
   <body>
-    Write some text in textbox:
-    <input type="text" ng-model="sometext" />
- 
-    <h1>Hello {{ sometext }}</h1>
-    <div ng-controller="helloCtrl">
-      {{ hi }}
+    <div id='c' style='border: 1px solid black;'>
+      Write some text in textbox:
+      <input type="text" ng-model="sometext" />
+
+      <h1>Hello {{ sometext }}</h1>
+      <div ng-controller="helloCtrl">
+        {{ hi }}
+      </div>
+      links:
+      <a href="list">List</a>
+      <a href="contact">contact</a>
+
+      <an-view class="anWrap"></an-view>
     </div>
-    <an-view></an-view>
 
     <script id="templates/contact.html" type="text/ng-template">
       <div>
         i am the contact template {{ hi }}: my counter is {{ counter }}
         <a href="#list">go to list</a>
+        <br />
+        using scope id: {{ $id }}
       </div>
     </script>
 
     <script id="templates/list.html" type="text/ng-template">
       <div>
-        This is the List View
+        This is the List anView
+        <br />
+        using scope id: {{ $id }}
       </div>
     </script>
+
   </body>
+  <script type="text/javascript">
+    console.log('add listener');
+    document.body.addEventListener('mousedown', function(e) {
+      console.log('bubble', e);
+    }, false);
+      document.body.addEventListener('mousedown', function() { console.log('capture')}, true);
+
+      // things we could track
+      // scrollposition
+      // activity
+      // click position
+      // touch movement
+      // time on page (increase exponential time to ping server)
+
+      // window.onbeforeunload = function (e) {, try eventually events
+
+      // once: browser/ engine/ resolution
+      </script>
 </html>

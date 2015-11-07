@@ -47,11 +47,27 @@
           transclude: true,
           scope: {},
           link: function(scope, element, attrs) {
-            var views = {}, scopes = {}, cur_el;
+            var views = {}, scopes = {};
+            var structure = {
+              'search': 0,
+                'start': 1,
+                  'list': 2,
+                'contact': 1,
+                  'contact_2': 2,
+                'payment': 1,
+                  'payment_2': 2,
+              'profile': 0,
+            };
+            var animationTimeout, cur_el, new_el;
+
 
             $rootScope.$on('anStateChange', function(e, to) {
               console.log('state changed to ', to);
-
+              if (animationTimeout) {
+                clearTimeout(animationTimeout);
+                resolveAnimation();
+                animationTimeout = null;
+              }
               // clear existing controllers
               if (scopes[to]) {
                 var subscope = scopes[to];
@@ -68,24 +84,40 @@
                 element.append(el);
               });
 
+              el[0].classList.add('anView');
               // animate in
-              el[0].classList.add('anView', 'ng-enter');
-              setTimeout(function() {
-                el[0].classList.remove('ng-enter');
-                cur_el = el;
-              }, 1000);
-
-
+              var anim_out, anim_out;
+              for (var it in structure) {
+                if (it == to) {
+                  anim_in = ['rotateIn', 'fadeInRight'][structure[it]];
+                  anim_out = ['rotateOut', 'fadeOutLeft'][structure[it]];
+                }
+              }
+              console.log('anim_in', anim_in);
+              console.log('anim_out', anim_out);
+              el[0].classList.add(anim_in);
+              animationTimeout = setTimeout(function() {
+                resolveAnimation();
+                animationTimeout = null;
+              }, 2000);
 
               // animate out
-              cur_el[0].classList.add('ng-leave');
-
-
-
+              cur_el && cur_el[0].classList.add(anim_out);
 
               console.log('element', el);
+              new_el = el;
 
-             });
+                function resolveAnimation() {
+                  new_el[0].classList.remove(anim_in);
+                  cur_el && element[0].removeChild(cur_el[0]);
+                  cur_el = new_el;
+
+                }
+              });
+
+
+
+
 
           }
         }
@@ -93,6 +125,7 @@
 
       myApp.service('anRouter', ['$rootScope', function($rootScope) {
         console.log('service called');
+
         this.doStuff = function() {
           console.log('wll do stuff');
         };
@@ -116,7 +149,11 @@
         {{ hi }}
       </div>
       links:
-      <a href="list">List</a>
+      <a href="profile">Profile</a>
+      <a href="search">Search</a>
+      <br />
+      <a href="start">start</a>
+      <a href="payment">payment</a>
       <a href="contact">contact</a>
 
       <an-view class="anWrap"></an-view>
@@ -138,6 +175,33 @@
         using scope id: {{ $id }}
       </div>
     </script>
+
+    <script id="templates/search.html" type="text/ng-template">
+      <div>
+        <h1>Search</h1>
+      </div>
+    </script>
+    <script id="templates/profile.html" type="text/ng-template">
+      <div>
+        <h1>Profile</h1>
+      </div>
+    </script>
+    <script id="templates/start.html" type="text/ng-template">
+      <div>
+        <h1>Start</h1>
+      </div>
+    </script>
+    <script id="templates/contact.html" type="text/ng-template">
+      <div>
+        <h1>Contact</h1>
+      </div>
+    </script>
+    <script id="templates/payment.html" type="text/ng-template">
+      <div>
+        <h1>Payment</h1>
+      </div>
+    </script>
+
 
   </body>
   <script type="text/javascript">

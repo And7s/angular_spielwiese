@@ -9,6 +9,7 @@ html, body {
   height: 200px;
   display: block;
   overflow: hidden;
+  perspective: 1000px;
 }
 
 .anView {
@@ -19,20 +20,83 @@ html, body {
   left: 0;
 
   background: blue;
-  -webkit-animation-duration: 1s;
-  animation-duration: 1s;
+  -webkit-animation-duration: 2s;
+  animation-duration: 2s;
   -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
 }
 
-.ng-enter {
+.rotateIn {
+  transform: preserve3d;
+  backface-visibility: hidden;
+  -webkit-animation-name: rotateIn;
+  animation-name: rotateIn;
+}
+
+.rotateOut {
+  transform: preserve3d;
+  backface-visibility: hidden;
+  -webkit-animation-name: rotateOut;
+  animation-name: rotateOut;
+}
+
+.fadeInRight {
   -webkit-animation-name: fadeInRight;
   animation-name: fadeInRight;
 }
 
-.ng-leave {
+.fadeOutLeft {
   -webkit-animation-name: fadeOutLeft;
   animation-name: fadeOutLeft;
+}
+
+@-webkit-keyframes rotateIn {
+  from {
+    -webkit-transform: rotateY(-180deg);
+    transform: rotateY(-180deg);
+  }
+
+  to {
+    -webkit-transform: rotateY(0deg);
+    transform: rotateY(0deg);
+  }
+}
+
+@keyframes rotateIn {
+  from {
+    -webkit-transform: rotateY(-180deg) scale(0);
+    transform: rotateY(-180deg) scale(0);
+  }
+
+  to {
+    -webkit-transform: rotateY(0deg) scale(1);
+    transform: rotateY(0deg) scale(1);
+  }
+}
+
+
+@-webkit-keyframes rotateOut {
+  from {
+    -webkit-transform: rotateY(0deg) scale(1);
+    transform: rotateY(0deg) scale(1);
+  }
+
+  to {
+    -webkit-transform: rotateY(180deg) scale(0);
+    transform: rotateY(180deg) scale(0);
+  }
+}
+
+@keyframes rotateOut {
+  from {
+    -webkit-transform: rotateY(0deg);
+    transform: rotateY(0deg);
+  }
+
+  to {
+    -webkit-transform: rotateY(180deg);
+    transform: rotateY(180deg);
+  }
 }
 
 

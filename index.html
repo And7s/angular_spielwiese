@@ -90,10 +90,16 @@
               var anim_out, anim_out;
               for (var it in structure) {
                 if (it == to) {
-                  anim_in = ['rotateIn', 'fadeInBottom', 'fadeInRight'][structure[it]];
-                  anim_out = ['rotateOut', '', 'fadeOutLeft'][structure[it]];
+                  if (opts.invertDir) {
+                    anim_in = ['rotateIn', 'fadeInBottom', 'fadeInLeft'][structure[it]];
+                    anim_out = ['rotateOut', '', 'fadeOutRight'][structure[it]];
+                  } else {
+                    anim_in = ['rotateIn', 'fadeInBottom', 'fadeInRight'][structure[it]];
+                    anim_out = ['rotateOut', '', 'fadeOutLeft'][structure[it]];
+                  }
                 }
               }
+
               console.log('anim_in', anim_in);
               console.log('anim_out', anim_out);
 
@@ -110,7 +116,7 @@
                 if(opts.animate) {
                   el[0].classList.add(anim_in);
                   el[0].classList.add('ng-enter-active');
-                  cur_el && cur_el[0].classList.add(anim_out);
+                  cur_el && anim_out && cur_el[0].classList.add(anim_out);
                 }
               });
 
@@ -136,7 +142,7 @@
         };
 
         this.goTo = function(href, opts) {
-
+          opts = opts ||{};
           console.log('href is ', href);
           // check if we are already on this page
           var anHistory = $rootScope.anHistory;
@@ -144,10 +150,11 @@
             console.log('you are already here');
             return;
           }
+
           // check if the page was previosly visited
           if (anHistory.length > 1 && anHistory[anHistory.length - 2] == href) {
             console.log('go back');
-            //opts.invertDir = true;
+            opts.invertDir = true;
             history.replaceState({}, '', '#'+href);
             $rootScope.anHistory.pop();
 
@@ -155,6 +162,7 @@
             history.pushState({}, "", '#'+href);
             $rootScope.anHistory.push(href);
           }
+
 
           $rootScope.$emit('anStateChange', href, opts);
           //this.$emit('hello');
@@ -168,6 +176,7 @@
           console.log(event);
           var to = location.hash.substring(1);
           console.log('will go to ', to);
+          debugger;
           that.goTo(to);
 
         };

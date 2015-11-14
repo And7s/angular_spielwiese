@@ -19,11 +19,13 @@ html, body {
   top: 0;
   left: 0;
 
-  background: blue;
-  -webkit-animation-duration: 2s;
-  animation-duration: 2s;
+  background: grey;
+  -webkit-animation-duration: .5s;
+  animation-duration: .5s;
   -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
+  -webkit-animation-timing-function: linear;
+  animation-timing-function: linear;
 }
 
 .rotateIn {
@@ -48,6 +50,11 @@ html, body {
 .fadeOutLeft {
   -webkit-animation-name: fadeOutLeft;
   animation-name: fadeOutLeft;
+}
+
+.fadeInBottom {
+  -webkit-animation-name: fadeInBottom;
+  animation-name: fadeInBottom;
 }
 
 @-webkit-keyframes rotateIn {
@@ -103,13 +110,11 @@ html, body {
 
 @-webkit-keyframes fadeInRight {
   from {
-    opacity: 0;
     -webkit-transform: translate3d(100%, 0, 0);
     transform: translate3d(100%, 0, 0);
   }
 
   to {
-    opacity: 1;
     -webkit-transform: none;
     transform: none;
   }
@@ -117,13 +122,11 @@ html, body {
 
 @keyframes fadeInRight {
   from {
-    opacity: 0;
     -webkit-transform: translate3d(100%, 0, 0);
     transform: translate3d(100%, 0, 0);
   }
 
   to {
-    opacity: 1;
     -webkit-transform: none;
     transform: none;
   }
@@ -131,11 +134,10 @@ html, body {
 
 @-webkit-keyframes fadeOutLeft {
   from {
-    opacity: 1;
+
   }
 
   to {
-    opacity: 0;
     -webkit-transform: translate3d(-100%, 0, 0);
     transform: translate3d(-100%, 0, 0);
   }
@@ -143,12 +145,37 @@ html, body {
 
 @keyframes fadeOutLeft {
   from {
-    opacity: 1;
+
   }
 
   to {
-    opacity: 0;
     -webkit-transform: translate3d(-100%, 0, 0);
     transform: translate3d(-100%, 0, 0);
+  }
+}
+
+
+
+@-webkit-keyframes fadeInBottom {
+  from {
+    -webkit-transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0);
+  }
+
+  to {
+    -webkit-transform: none;
+    transform: none;
+  }
+}
+
+@keyframes fadeInBottom {
+  from {
+    -webkit-transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0);
+  }
+
+  to {
+    -webkit-transform: none;
+    transform: none;
   }
 }

@@ -61,7 +61,11 @@
             var animationTimeout, cur_el, new_el;
 
 
-            $rootScope.$on('anStateChange', function(e, to) {
+            $rootScope.$on('anStateChange', function(e, to, opts) {
+              console.log(opts);
+              opts = opts || {};
+              typeof(opts.animate) == 'undefined' && (opts.animate = true);  // default
+
               console.log('state changed to ', to);
               if (animationTimeout) {
                 clearTimeout(animationTimeout);
@@ -80,62 +84,100 @@
               var el = $compile($templateCache.get('templates/'+ to +'.html'))(subscope);
               views[to] = el;
 
-              $timeout(function() {
-                element.append(el);
-              });
-
               el[0].classList.add('anView');
+
               // animate in
               var anim_out, anim_out;
               for (var it in structure) {
                 if (it == to) {
-                  anim_in = ['rotateIn', 'fadeInRight'][structure[it]];
-                  anim_out = ['rotateOut', 'fadeOutLeft'][structure[it]];
+                  anim_in = ['rotateIn', 'fadeInBottom', 'fadeInRight'][structure[it]];
+                  anim_out = ['rotateOut', '', 'fadeOutLeft'][structure[it]];
                 }
               }
               console.log('anim_in', anim_in);
               console.log('anim_out', anim_out);
-              el[0].classList.add(anim_in);
+
+              // after animation finished
               animationTimeout = setTimeout(function() {
                 resolveAnimation();
                 animationTimeout = null;
               }, 2000);
 
-              // animate out
-              cur_el && cur_el[0].classList.add(anim_out);
+              // add element to the dom, animate in
+              $timeout(function() {
+                element.append(el);
+                // animate out
+                if(opts.animate) {
+                  el[0].classList.add(anim_in);
+                  el[0].classList.add('ng-enter-active');
+                  cur_el && cur_el[0].classList.add(anim_out);
+                }
+              });
 
               console.log('element', el);
               new_el = el;
 
-                function resolveAnimation() {
-                  new_el[0].classList.remove(anim_in);
-                  cur_el && element[0].removeChild(cur_el[0]);
-                  cur_el = new_el;
-
-                }
-              });
-
-
-
-
-
+              function resolveAnimation() {
+                new_el[0].classList.remove(anim_in);
+                new_el[0].classList.remove('ng-enter-active');
+                cur_el && element[0].removeChild(cur_el[0]);
+                cur_el = new_el;
+              }
+            });
           }
         }
       }]);
 
       myApp.service('anRouter', ['$rootScope', function($rootScope) {
         console.log('service called');
-
+        $rootScope.anHistory = [];
         this.doStuff = function() {
           console.log('wll do stuff');
         };
-        this.goTo = function(href) {
+
+        this.goTo = function(href, opts) {
+
           console.log('href is ', href);
-          history.pushState({}, "", '#'+href);
-          $rootScope.$emit('anStateChange', href);
+          // check if we are already on this page
+          var anHistory = $rootScope.anHistory;
+          if (anHistory.length > 0 && anHistory[anHistory.length - 1] == href) {
+            console.log('you are already here');
+            return;
+          }
+          // check if the page was previosly visited
+          if (anHistory.length > 1 && anHistory[anHistory.length - 2] == href) {
+            console.log('go back');
+            //opts.invertDir = true;
+            history.replaceState({}, '', '#'+href);
+            $rootScope.anHistory.pop();
+
+          } else {
+            history.pushState({}, "", '#'+href);
+            $rootScope.anHistory.push(href);
+          }
+
+          $rootScope.$emit('anStateChange', href, opts);
           //this.$emit('hello');
           console.log(this);
-        }
+        };
+
+        var that = this;
+        // support prowser back forth navigation
+        window.onpopstate = function(event) {
+          console.log("location: " + document.location + ", state: " + JSON.stringify(event.state));
+          console.log(event);
+          var to = location.hash.substring(1);
+          console.log('will go to ', to);
+          that.goTo(to);
+
+        };
+
+        // initialliy go to the default (0) page
+        var that = this;
+        setTimeout(function() {
+          var to = location.hash.substring(1) || 'search';
+          that.goTo(to, {animate: false});
+        });
       }]);
     </script>
   </head>
@@ -143,7 +185,7 @@
     <div id='c' style='border: 1px solid black;'>
       Write some text in textbox:
       <input type="text" ng-model="sometext" />
-
+      {{ anHistory }}
       <h1>Hello {{ sometext }}</h1>
       <div ng-controller="helloCtrl">
         {{ hi }}
@@ -155,6 +197,10 @@
       <a href="start">start</a>
       <a href="payment">payment</a>
       <a href="contact">contact</a>
+      <br />
+      <a href="list">List</a>
+      <a href="payment_2">payment2</a>
+      <a href="contact_2">contact2</a>
 
       <an-view class="anWrap"></an-view>
     </div>
@@ -201,6 +247,22 @@
         <h1>Payment</h1>
       </div>
     </script>
+        <script id="templates/list.html" type="text/ng-template">
+      <div>
+        <h1>List</h1>
+      </div>
+    </script>
+    <script id="templates/contact_2.html" type="text/ng-template">
+      <div>
+        <h1>Contact 2</h1>
+      </div>
+    </script>
+    <script id="templates/payment_2.html" type="text/ng-template">
+      <div>
+        <h1>Payment 2</h1>
+      </div>
+    </script>
+
 
 
   </body>

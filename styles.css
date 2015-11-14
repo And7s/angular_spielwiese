@@ -5,8 +5,8 @@ html, body {
 .anWrap {
   position: relative;
   border: 1px solid red;
-  width: 100%;
-  height: 200px;
+  width: 320px;
+  height: 640px;
   display: block;
   overflow: hidden;
   perspective: 1000px;
@@ -18,8 +18,8 @@ html, body {
   height: 100%;
   top: 0;
   left: 0;
+  overflow: auto;
 
-  background: grey;
   -webkit-animation-duration: .5s;
   animation-duration: .5s;
   -webkit-animation-fill-mode: both;
@@ -28,6 +28,19 @@ html, body {
   animation-timing-function: linear;
 }
 
+.anContent {
+  position: absolute;
+  background: #DDD;
+  min-height: 100%;
+  min-width: 100%;
+}
+
+.card-job {
+  border: 1px solid black;
+  border-radius: 5px;
+  margin: 5px;
+  padding: 5px;
+}
 .rotateIn {
   transform: preserve3d;
   backface-visibility: hidden;
@@ -105,12 +118,12 @@ html, body {
 
 @keyframes rotateOut {
   from {
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg) scale(1);
+    transform: rotateY(0deg)  scale(1);
   }
   to {
-    -webkit-transform: rotateY(180deg);
-    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg) scale(0);
+    transform: rotateY(180deg) scale(0);
   }
 }
 

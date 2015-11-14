@@ -3,6 +3,9 @@
   <head>
     <title>My Angular App</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.js"></script>
+    <script type="text/javascript" src="random_data.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
     <script type="text/javascript">
       var myApp = angular.module('myApp', []);
@@ -10,6 +13,10 @@
       myApp.controller('helloCtrl', function($scope) {
         console.log('hello Ctrl');
         $scope.hi = 'world';
+        $scope.criteria = {};
+        $scope.shared = {};
+
+        console.log('helloCtrl scope ', $scope);
       });
       myApp.controller('contactCtrl', function($scope, $timeout) {
         console.log('contact Ctrl');
@@ -21,6 +28,19 @@
         }
         increase();
       });
+      myApp.controller('searchCtrl', function($scope, $timeout) {
+        console.log('searchCtrl');
+        console.log('scope', $scope);
+      });
+
+      myApp.controller('listCtrl', function($scope, $timeout) {
+        console.log('listCtrl');
+        console.log('scope', $scope);
+        $scope.shared.jobs = _.take(_.shuffle(randomData), 20);
+      });
+
+
+
       myApp.directive('a', ['anRouter', function(anRouter) {
         return {
           link: function(scope, element, attrs) {
@@ -45,7 +65,7 @@
         return {
           restrict: 'E',
           transclude: true,
-          scope: {},
+          scope: true,  // inherit scope
           link: function(scope, element, attrs) {
             var views = {}, scopes = {};
             var structure = {
@@ -58,7 +78,24 @@
                   'payment_2': 2,
               'profile': 0,
             };
-            var animationTimeout, cur_el, new_el;
+
+            var structure_2 = [
+              {
+                name: 'search',
+                level: 0,
+                controller: 'searchCtrl'
+              },
+              {
+                name: 'list',
+                level: 1,
+                controller: 'listCtrl'
+              }
+            ];
+
+            console.log('link scope', scope);
+
+
+            var animationTimeout, cur_el, new_el, cur_page_name;
 
 
             $rootScope.$on('anStateChange', function(e, to, opts) {
@@ -77,17 +114,27 @@
                 var subscope = scopes[to];
               } else {
                 var subscope = scope.$new();
-                $controller('contactCtrl', {$scope: subscope});
+                var ctrl = _.findWhere(structure_2, {name: to});
+                if(ctrl) {
+                  console.log('Initialise controller', ctrl);
+                  $controller(ctrl.controller, {$scope: subscope});
+                }
+
                 scopes[to] = subscope;
               }
-
-              var el = $compile($templateCache.get('templates/'+ to +'.html'))(subscope);
+              // TODO: for performance reasons, compile only once and resue linker funtion
+              var el = $compile('<div>' + $templateCache.get('templates/'+ to +'.html') + '</div>')(subscope);
               views[to] = el;
 
               el[0].classList.add('anView');
+              el[0].children[0].classList.add('anContent');
 
               // animate in
               var anim_out, anim_out;
+              var structure_from = _.findWhere(structure_2, {name: cur_page_name}),
+                  structure_to = _.findWhere(structure_2, {name: to});
+
+                  // TODO
               for (var it in structure) {
                 if (it == to) {
                   if (opts.invertDir) {
@@ -176,7 +223,6 @@
           console.log(event);
           var to = location.hash.substring(1);
           console.log('will go to ', to);
-          debugger;
           that.goTo(to);
 
         };
@@ -194,24 +240,27 @@
     <div id='c' style='border: 1px solid black;'>
       Write some text in textbox:
       <input type="text" ng-model="sometext" />
-      {{ anHistory }}
+      <br />
+      History: {{ anHistory }}
       <h1>Hello {{ sometext }}</h1>
       <div ng-controller="helloCtrl">
         {{ hi }}
-      </div>
-      links:
-      <a href="profile">Profile</a>
-      <a href="search">Search</a>
-      <br />
-      <a href="start">start</a>
-      <a href="payment">payment</a>
-      <a href="contact">contact</a>
-      <br />
-      <a href="list">List</a>
-      <a href="payment_2">payment2</a>
-      <a href="contact_2">contact2</a>
+        {{ criteria }}
 
-      <an-view class="anWrap"></an-view>
+        links:
+        <a href="profile">Profile</a>
+        <a href="search">Search</a>
+        <br />
+        <a href="start">start</a>
+        <a href="payment">payment</a>
+        <a href="contact">contact</a>
+        <br />
+        <a href="list">List</a>
+        <a href="payment_2">payment2</a>
+        <a href="contact_2">contact2</a>
+
+        <an-view class="anWrap"></an-view>
+      </div>
     </div>
 
     <script id="templates/contact.html" type="text/ng-template">
@@ -223,17 +272,16 @@
       </div>
     </script>
 
-    <script id="templates/list.html" type="text/ng-template">
-      <div>
-        This is the List anView
-        <br />
-        using scope id: {{ $id }}
-      </div>
-    </script>
-
     <script id="templates/search.html" type="text/ng-template">
       <div>
         <h1>Search</h1>
+        criteria: <br />
+        <input type="text" ng-model="criteria.text" placeholder="freetext">
+        <input type="number" ng-model="criteria.salary" placeholder="salary">
+        <br />
+        {{ criteria }}
+        <a href="list" class="btn btn-primary">Search</a>
+
       </div>
     </script>
     <script id="templates/profile.html" type="text/ng-template">
@@ -259,6 +307,17 @@
         <script id="templates/list.html" type="text/ng-template">
       <div>
         <h1>List</h1>
+
+        {{ criteria }}
+
+        <div ng-repeat="job in shared.jobs" class="card-job">
+          <img src="{{ job.picture }}" style="float: left;">
+          <h4>{{ job.company }}</h4>
+          {{ job.address }} - {{ job.phone}}
+          <br />
+          <small>{{ job.registered }}</small>
+        </div>
+        using scope id: {{ $id }}
       </div>
     </script>
     <script id="templates/contact_2.html" type="text/ng-template">
@@ -271,26 +330,5 @@
         <h1>Payment 2</h1>
       </div>
     </script>
-
-
-
   </body>
-  <script type="text/javascript">
-    console.log('add listener');
-    document.body.addEventListener('mousedown', function(e) {
-      console.log('bubble', e);
-    }, false);
-      document.body.addEventListener('mousedown', function() { console.log('capture')}, true);
-
-      // things we could track
-      // scrollposition
-      // activity
-      // click position
-      // touch movement
-      // time on page (increase exponential time to ping server)
-
-      // window.onbeforeunload = function (e) {, try eventually events
-
-      // once: browser/ engine/ resolution
-      </script>
 </html>

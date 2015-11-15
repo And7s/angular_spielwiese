@@ -68,27 +68,34 @@
           scope: true,  // inherit scope
           link: function(scope, element, attrs) {
             var views = {}, scopes = {};
-            var structure = {
-              'search': 0,
-                'start': 1,
-                  'list': 2,
-                'contact': 1,
-                  'contact_2': 2,
-                'payment': 1,
-                  'payment_2': 2,
-              'profile': 0,
-            };
 
             var structure_2 = [
               {
                 name: 'search',
                 level: 0,
                 controller: 'searchCtrl'
-              },
-              {
+              }, {
                 name: 'list',
                 level: 1,
                 controller: 'listCtrl'
+              }, {
+                name: 'start',
+                level: 1
+              }, {
+                name: 'contact',
+                level: 1
+              }, {
+                name: 'contact_2',
+                level: 2
+              }, {
+                name: 'payment',
+                level: 1
+              }, {
+                name: 'payment_2',
+                level: 2
+              }, {
+                name: 'profile',
+                level: 0
               }
             ];
 
@@ -114,10 +121,10 @@
                 var subscope = scopes[to];
               } else {
                 var subscope = scope.$new();
-                var ctrl = _.findWhere(structure_2, {name: to});
-                if(ctrl) {
-                  console.log('Initialise controller', ctrl);
-                  $controller(ctrl.controller, {$scope: subscope});
+                var state = _.findWhere(structure_2, {name: to});
+                if(state && state.controller) {
+                  console.log('Initialise controller', state.controller);
+                  $controller(state.controller, {$scope: subscope});
                 }
 
                 scopes[to] = subscope;
@@ -134,18 +141,14 @@
               var structure_from = _.findWhere(structure_2, {name: cur_page_name}),
                   structure_to = _.findWhere(structure_2, {name: to});
 
-                  // TODO
-              for (var it in structure) {
-                if (it == to) {
-                  if (opts.invertDir) {
-                    anim_in = ['rotateIn', 'fadeInBottom', 'fadeInLeft'][structure[it]];
-                    anim_out = ['rotateOut', '', 'fadeOutRight'][structure[it]];
-                  } else {
-                    anim_in = ['rotateIn', 'fadeInBottom', 'fadeInRight'][structure[it]];
-                    anim_out = ['rotateOut', '', 'fadeOutLeft'][structure[it]];
-                  }
-                }
+              if (opts.invertDir) {
+                anim_in = ['rotateIn', 'fadeInBottom', 'fadeInLeft'][structure_to.level];
+                anim_out = ['rotateOut', '', 'fadeOutRight'][structure_to.level];
+              } else {
+                anim_in = ['rotateIn', 'fadeInBottom', 'fadeInRight'][structure_to.level];
+                anim_out = ['rotateOut', '', 'fadeOutLeft'][structure_to.level];
               }
+
 
               console.log('anim_in', anim_in);
               console.log('anim_out', anim_out);
@@ -173,7 +176,7 @@
               function resolveAnimation() {
                 new_el[0].classList.remove(anim_in);
                 new_el[0].classList.remove('ng-enter-active');
-                cur_el && element[0].removeChild(cur_el[0]);
+                //cur_el && element[0].removeChild(cur_el[0]);
                 cur_el = new_el;
               }
             });
@@ -279,7 +282,7 @@
         <input type="text" ng-model="criteria.text" placeholder="freetext">
         <input type="number" ng-model="criteria.salary" placeholder="salary">
         <br />
-        {{ criteria }}
+        {{ criteria }} <br />
         <a href="list" class="btn btn-primary">Search</a>
 
       </div>

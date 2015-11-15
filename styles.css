@@ -9,7 +9,7 @@ html, body {
   height: 640px;
   display: block;
   overflow: hidden;
-  perspective: 1000px;
+  //perspective: 1000px;
 }
 
 .anView {
@@ -19,7 +19,7 @@ html, body {
   top: 0;
   left: 0;
   overflow: auto;
-
+  //`??transform: translate3d(0,0,0);
   -webkit-animation-duration: .5s;
   animation-duration: .5s;
   -webkit-animation-fill-mode: both;

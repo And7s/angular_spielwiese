@@ -7,6 +7,19 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.js"></script>
     <script type="text/javascript" src="random_data.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+    <link rel="stylesheet/less" type="text/css" href="styles.less" />
+    <script>
+      less = {
+        env: "development",
+        async: false,
+        fileAsync: false,
+        poll: 1000,
+        functions: {},
+        dumpLineNumbers: "comments",
+        relativeUrls: false
+      };
+    </script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/less.js/2.5.3/less.js"></script>
     <script type="text/javascript">
       var myApp = angular.module('myApp', []);
 
@@ -157,16 +170,25 @@
               animationTimeout = setTimeout(function() {
                 resolveAnimation();
                 animationTimeout = null;
-              }, 2000);
+              }, 2100);
 
+              // before animation
+              if(opts.animate) {
+                el[0].classList.add('ng-enter');
+                cur_el && cur_el[0].classList.add('ng-leave');
+                el[0].classList.add(anim_in);
+              }
+              element.append(el);
               // add element to the dom, animate in
               $timeout(function() {
-                element.append(el);
+
                 // animate out
                 if(opts.animate) {
-                  el[0].classList.add(anim_in);
                   el[0].classList.add('ng-enter-active');
-                  cur_el && anim_out && cur_el[0].classList.add(anim_out);
+                  if(cur_el) {
+                    anim_out && cur_el[0].classList.add(anim_out);
+                    cur_el[0].classList.add('ng-leave-active');
+                  }
                 }
               });
 
@@ -174,10 +196,13 @@
               new_el = el;
 
               function resolveAnimation() {
-                new_el[0].classList.remove(anim_in);
-                new_el[0].classList.remove('ng-enter-active');
-                //cur_el && element[0].removeChild(cur_el[0]);
-                cur_el = new_el;
+
+                new_el[0].classList.remove(anim_in, 'ng-enter', 'ng-enter-active');
+                if(cur_el) {
+                  // TODO add caching
+                  element[0].removeChild(cur_el[0]);
+                }
+                cur_el = new_el;  // new element is current element
               }
             });
           }
